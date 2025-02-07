@@ -47,6 +47,8 @@ env:
   secret:
     - RAILS_MASTER_KEY
     - RAILS_ENV
+    - SECRET_KEY_BASE
+    - secret_key_base
 #   clear:
 #     DB_HOST: 192.168.0.2
 
