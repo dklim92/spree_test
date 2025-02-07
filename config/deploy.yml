@@ -7,7 +7,12 @@ image: dklim992/spree_test
 # Deploy to these servers.
 servers:
   web:
-    - 5.180.30.72
+    hosts:
+      - 5.180.30.72
+    labels:
+      traefic.http.routers.spree_secure.entrypoints: websecure
+      traefic.http.routers.spree_secure.rule: Host('haspari.net')
+      traefic.http.routers.spree_secure.tls: true
   # job:
   #   hosts:
   #     - 192.168.0.1
@@ -19,7 +24,7 @@ servers:
 # Note: If using Cloudflare, set encryption mode in SSL/TLS setting to "Full" to enable CF-to-app encryption.
 proxy:
   ssl: false
-  host: kolomix.net
+  host: haspari.net
   # Proxy connects to your container on port 80 by default.
   # app_port: 3000
 
@@ -34,8 +39,8 @@ registry:
     - KAMAL_REGISTRY_PASSWORD
 
 # Configure builder setup.
-builder:
-  arch: amd64
+#builder:
+#  arch: amd64
   # Pass in additional build args needed for your Dockerfile.
   # args:
   #   RUBY_VERSION: <%= File.read('.ruby-version').strip %>
@@ -49,30 +54,41 @@ env:
 #   clear:
 #     DB_HOST: 192.168.0.2
 
+
+traefik:
+  options:
+    publish:
+      '443:443'
+  args:
+    entryPoints.websecure.address: ':443'
+
+# Use a persistent storage volume.
+#
+volumes:
+  - "storage:/rails/storage"
+
+
 # Aliases are triggered with "bin/kamal <alias>". You can overwrite arguments on invocation:
 # "bin/kamal logs -r job" will tail logs from the first server in the job section.
 #
-aliases:
-  console: app exec --interactive --reuse "bin/rails console"
-  shell: app exec --interactive --reuse "bash"
-  logs: app logs -f
-  dbc: app exec --interactive --reuse "bin/rails dbconsole"
+#aliases:
+#  console: app exec --interactive --reuse "bin/rails console"
+#  shell: app exec --interactive --reuse "bash"
+#  logs: app logs -f
+#  dbc: app exec --interactive --reuse "bin/rails dbconsole"
 
 # Use a different ssh user than root
 #
 # ssh:
 #   user: app
 
-# Use a persistent storage volume.
-#
-volumes:
-  - "spree_storage:/rails/storage"
+
 
 # Bridge fingerprinted assets, like JS and CSS, between versions to avoid
 # hitting 404 on in-flight requests. Combines all files from new and old
 # version inside the asset_path.
 #
-asset_path: /rails/public/assets
+#asset_path: /rails/public/assets
 
 # Configure rolling deploys by setting a wait time between batches of restarts.
 #
@@ -82,22 +98,23 @@ asset_path: /rails/public/assets
 
 # Use accessory services (secrets come from .kamal/secrets).
 #
-accessories:
-  db:
-    image: postgres:17
-    host: 5.180.30.72
-    port: 5432:5432
-    env:
-      clear:
-        POSTGRES_USER: deploy
-        POSTGRES_DB: spree_prod
-      secret:
-        - POSTGRES_PASSWORD
-    directories:
-      - data:/var/lib/postgresql/data
-  redis:
-    image: redis:7
-    host: 5.180.30.72
-    port: 6379
-    directories:
-      - data:/data
+#accessories:
+#  db:
+#    image: postgres:17
+#    host: 5.180.30.72
+#    port: 5432:5432
+#    env:
+#      clear:
+#        POSTGRES_USER: deploy
+#        POSTGRES_DB: spree_prod
+#      secret:
+#        - POSTGRES_PASSWORD
+#    directories:
+#      - data:/var/lib/postgresql/data
+#  redis:
+#    image: redis:7
+#    host: 5.180.30.72
+#    port: 6379
+#    directories:
+#      - data:/data
+
